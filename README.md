@@ -36,10 +36,11 @@ Press **Ctrl-C** any time to stop early — you still get the full summary.
 - **Live view** — redraws every interval with the latest reading and a sparkline
   history for download, upload, and latency.
 - **Summary** — printed on exit (and kept on screen). Sparkline graphs over time,
-  a p50/p90/p99 table, and a readiness verdict judged on **p90**:
-  - download ≥ 3.2 Mbps
-  - upload ≥ 2.0 Mbps
-  - latency ≤ 100 ms
+  a p50/p90/p99 table, and a readiness verdict. Each metric is judged on its
+  **bad tail** — throughput on the **p10 floor**, latency on the **p90 ceiling**:
+  - download ≥ 3.2 Mbps (p10 — 90% of the time you had at least this much)
+  - upload ≥ 2.0 Mbps (p10)
+  - latency ≤ 100 ms (p90 — near-worst reading)
 
   Thresholds live at the top of the script (`MEET_DL` / `MEET_UL` / `MEET_LAT`).
 

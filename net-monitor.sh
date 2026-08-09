@@ -147,9 +147,9 @@ summary() {
   echo "  host=$PING_HOST  duration=${DURATION}s  interval=${INTERVAL}s  samples=${#LAT_SAMPLES[@]}  failed=${FAILS}"
   echo "  ═════════════════════════════════════════════════════════════"
 
-  local dl50 dl90 dl99 ul50 ul90 ul99 la50 la90 la99
-  dl50=$(percentile 50 "${DL_SAMPLES[@]:-}"); dl90=$(percentile 90 "${DL_SAMPLES[@]:-}"); dl99=$(percentile 99 "${DL_SAMPLES[@]:-}")
-  ul50=$(percentile 50 "${UL_SAMPLES[@]:-}"); ul90=$(percentile 90 "${UL_SAMPLES[@]:-}"); ul99=$(percentile 99 "${UL_SAMPLES[@]:-}")
+  local dl10 dl50 dl90 dl99 ul10 ul50 ul90 ul99 la50 la90 la99
+  dl10=$(percentile 10 "${DL_SAMPLES[@]:-}"); dl50=$(percentile 50 "${DL_SAMPLES[@]:-}"); dl90=$(percentile 90 "${DL_SAMPLES[@]:-}"); dl99=$(percentile 99 "${DL_SAMPLES[@]:-}")
+  ul10=$(percentile 10 "${UL_SAMPLES[@]:-}"); ul50=$(percentile 50 "${UL_SAMPLES[@]:-}"); ul90=$(percentile 90 "${UL_SAMPLES[@]:-}"); ul99=$(percentile 99 "${UL_SAMPLES[@]:-}")
   la50=$(percentile 50 "${LAT_SAMPLES[@]:-}"); la90=$(percentile 90 "${LAT_SAMPLES[@]:-}"); la99=$(percentile 99 "${LAT_SAMPLES[@]:-}")
 
   echo "  over time (${#LAT_SAMPLES[@]} samples, oldest → newest):"
@@ -172,10 +172,11 @@ summary() {
   printf "  %-18s %10s %10s %10s\n" "latency  (ms)"   "$la50" "$la90" "$la99"
   echo "  ═════════════════════════════════════════════════════════════"
 
-  # Verdict: judge against Meet thresholds using p90 (sustained worst-of-typical).
-  echo "  Google Meet / daily-work readiness (judged on p90):"
-  verdict_line "download" "$dl90" "$MEET_DL" "Mbps" "ge"
-  [[ "$DO_UPLOAD" -eq 1 ]] && verdict_line "upload" "$ul90" "$MEET_UL" "Mbps" "ge"
+  # Verdict: judge each metric on its BAD tail — throughput on the p10 floor
+  # (90% of the time you had at least this much), latency on the p90 ceiling.
+  echo "  Google Meet / daily-work readiness (throughput=p10 floor, latency=p90 ceiling):"
+  verdict_line "download" "$dl10" "$MEET_DL" "Mbps" "ge"
+  [[ "$DO_UPLOAD" -eq 1 ]] && verdict_line "upload" "$ul10" "$MEET_UL" "Mbps" "ge"
   verdict_line "latency" "$la90" "$MEET_LAT" "ms" "le"
   echo "  ═════════════════════════════════════════════════════════════"
 }
